@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotel Lakhimi — Smart QR Ordering</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --primary: #991b1b;
+      --primary-dark: #7f1d1d;
+      --accent: #b45309;
+      --success: #15803d;
+      --danger: #b91c1c;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 92px; }
+
+    header {
+      position: sticky; top: 0; z-index: 20;
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    }
+    .brand h1 { margin: 0; font-size: 18px; color: var(--primary); letter-spacing: 0.2px; }
+    .brand span { font-size: 12px; color: var(--muted); }
+
+    .mode-switch { display: flex; gap: 6px; }
+    .mode-btn {
+      border: 1px solid var(--border); background: #f9fafb; padding: 7px 11px;
+      border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .container { max-width: 740px; margin: 0 auto; padding: 14px; }
+
+    .top-bar {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
+      background: #fff; padding: 12px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 14px;
+    }
+    .table-box { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+    select, input[type="text"], input[type="number"] {
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: #fff;
+    }
+
+    .waiter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .waiter-btn {
+      background: #fffbeb; color: #92400e; border: 1px solid #fcd34d;
+      padding: 8px 12px; border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer;
+    }
+    .waiter-btn:active { transform: scale(0.98); }
+
+    .cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
+    .cat-pill {
+      border: 1px solid var(--border); background: #fff; padding: 6px 14px;
+      border-radius: 999px; font-size: 13px; white-space: nowrap; cursor: pointer; font-weight: 600;
+    }
+    .cat-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .menu-item {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .item-info h3 { margin: 0 0 4px; font-size: 15px; }
+    .item-info p { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+    .price { font-weight: 700; font-size: 14px; }
+
+    .qty-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+    .qty-btn.add { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .card {
+      background: #fff; border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px; margin-bottom: 12px;
+    }
+    .card h3 { margin: 0 0 10px; font-size: 15px; }
+
+    .order-btn {
+      background: var(--success); color: #fff; border: none; padding: 11px 16px;
+      border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%;
+    }
+
+    .cart-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 25;
+      background: #111827; color: #fff; padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .review-btn {
+      background: var(--success); color: #fff; border: none; padding: 9px 14px;
+      border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;
+    }
+
+    .badge {
+      display: inline-block; padding: 3px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+    }
+    .Pending { background: #fef3c7; color: #92400e; }
+    .Accepted, .Preparing, .Ready { background: #dcfce7; color: #166534; }
+    .Rejected { background: #fee2e2; color: #991b1b; }
+    .Done { background: #e5e7eb; color: #374151; }
+
+    .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .btn-accept {
+      flex: 1; min-width: 110px; background: var(--success); color: #fff; border: none;
+      padding: 8px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
+    }
+    .btn-reject {
+      flex: 1; min-width: 110px; background: var(--danger); color: #fff; border: none;
+      padding: 8px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
+    }
+    .btn-stage {
+      background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+      padding: 8px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
+    }
+
+    .toast {
+      position: fixed; top: 68px; left: 50%; transform: translateX(-50%);
+      background: #111827; color: #fff; padding: 9px 16px; border-radius: 999px;
+      font-size: 13px; z-index: 50; display: none; white-space: nowrap;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Hotel Lakhimi</h1>
+    <span>Scan • Order • Call Waiter</span>
+  </div>
+  <div class="mode-switch">
+    <button class="mode-btn active" id="tabCustomer" onclick="switchMode('customer')">Guest</button>
+    <button class="mode-btn" id="tabStaff" onclick="switchMode('staff')">Chef / Owner</button>
+  </div>
+</header>
+
+<div class="toast" id="toast"></div>
+
+<!-- GUEST / CUSTOMER VIEW -->
+<div class="container" id="customerView">
+  <div class="top-bar">
+    <div class="table-box">
+      <label for="tableSelect">Table:</label>
+      <select id="tableSelect" onchange="renderAll()"></select>
+    </div>
+
+    <div class="waiter-group">
+      <select id="waiterReason">
+        <option value="General Assistance">Call Waiter</option>
+        <option value="Water Refill">Water</option>
+        <option value="Cutlery / Tissue">Tissue / Cutlery</option>
+        <option value="Bill Request">Bill</option>
+      </select>
+      <button class="waiter-btn" onclick="callWaiter()">🔔 Notify</button>
+    </div>
+  </div>
+
+  <div class="cats" id="categoryList"></div>
+  <div id="menuList"></div>
+
+  <div class="card" id="checkoutBox">
+    <h3>Place Order</h3>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+      <input type="text" id="noteInput" placeholder="Cooking note (e.g. less spicy, no onion)" style="flex:1; min-width:180px;" />
+      <select id="payMode">
+        <option value="Pay at Counter">Pay at Counter (Default)</option>
+        <option value="Online Payment (Add Later)">Online Payment (Add Later)</option>
+      </select>
+    </div>
+    <button class="order-btn" onclick="placeOrder()">Send Order to Kitchen</button>
+  </div>
+
+  <div class="card">
+    <h3>Current Table Orders</h3>
+    <div id="myOrders"></div>
+  </div>
+</div>
+
+<!-- CHEF / OWNER VIEW -->
+<div class="container hidden" id="staffView">
+  <div class="card">
+    <h3>🔔 Waiter & Table Requests</h3>
+    <div id="staffWaiterCalls"></div>
+  </div>
+
+  <div class="card">
+    <h3>📋 Live Kitchen & Owner Orders</h3>
+    <div id="staffOrders"></div>
+  </div>
+
+  <div class="card">
+    <h3>➕ Add / Manage Menu Items (Setup Mode)</h3>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+      <input type="text" id="newItemName" placeholder="Item name" style="flex:1; min-width:140px;" />
+      <input type="number" id="newItemPrice" placeholder="Price (₹)" style="width:100px;" />
+      <select id="newItemCat">
+        <option value="Starters">Starters</option>
+        <option value="Mains">Mains</option>
+        <option value="Beverages">Beverages</option>
+        <option value="Desserts">Desserts</option>
+      </select>
+    </div>
+    <input type="text" id="newItemDesc" placeholder="Short description (optional)" style="width:100%; margin-bottom:8px;" />
+    <button class="mode-btn active" style="width:100%; padding:9px;" onclick="addMenuItem()">Add Menu Item</button>
+  </div>
+</div>
+
+<!-- BOTTOM CART BAR -->
+<div class="cart-bar" id="cartBar">
+  <div>
+    <div style="font-size:11px; color:#d1d5db;">Selected Items</div>
+    <div style="font-size:15px; font-weight:700;" id="cartSummary">0 items • ₹0</div>
+  </div>
+  <button class="review-btn" onclick="document.getElementById('checkoutBox').scrollIntoView({behavior:'smooth'})">
+    Order Now
+  </button>
+</div>
+
+<script>
+  const TABLES = [
+    "1","2","3","4","5","6","7","8","9","10",
+    "11","12","13","14","15","Private 1","Private 2"
+  ];
+
+  const DEFAULT_MENU = [
+    { id: 1, name: "Sample Starter", cat: "Starters", price: 120, desc: "Update or add your menu items anytime" },
+    { id: 2, name: "Sample Main Dish", cat: "Mains", price: 200, desc: "Edit price and dish details as needed" },
+    { id: 3, name: "Sample Beverage", cat: "Beverages", price: 60, desc: "Hot or cold drink option" }
+  ];
+
+  const CATEGORIES = ["All", "Starters", "Mains", "Beverages", "Desserts"];
+  let selectedCat = "All";
+  let cart = {};
+  let menuItems = JSON.parse(localStorage.getItem("lakhimi_menu") || "null") || DEFAULT_MENU;
+  let orders = JSON.parse(localStorage.getItem("lakhimi_orders") || "[]");
+  let waiterCalls = JSON.parse(localStorage.getItem("lakhimi_calls") || "[]");
+
+  function initTables() {
+    const sel = document.getElementById("tableSelect");
+    sel.innerHTML = TABLES.map(t => `<option value="${t}">${t.startsWith("Private") ? t : "Table " + t}</option>`).join("");
+
+    const qTable = new URLSearchParams(window.location.search).get("table");
+    if (qTable) {
+      const match = TABLES.find(t => t.toLowerCase() === qTable.trim().toLowerCase());
+      if (match) sel.value = match;
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => t.style.display = "none", 2300);
+  }
+
+  function saveAll() {
+    localStorage.setItem("lakhimi_menu", JSON.stringify(menuItems));
+    localStorage.setItem("lakhimi_orders", JSON.stringify(orders));
+    localStorage.setItem("lakhimi_calls", JSON.stringify(waiterCalls));
+  }
+
+  function switchMode(mode) {
+    const isGuest = mode === "customer";
+    document.getElementById("customerView").classList.toggle("hidden", !isGuest);
+    document.getElementById("staffView").classList.toggle("hidden", isGuest);
+    document.getElementById("cartBar").classList.toggle("hidden", !isGuest);
+    document.getElementById("tabCustomer").classList.toggle("active", isGuest);
+    document.getElementById("tabStaff").classList.toggle("active", !isGuest);
+    renderAll();
+  }
+
+  function renderCategories() {
+    document.getElementById("categoryList").innerHTML = CATEGORIES.map(c => `
+      <button class="cat-pill ${selectedCat === c ? "active" : ""}" onclick="selectCat('${c}')">${c}</button>
+    `).join("");
+  }
+
+  function selectCat(cat) {
+    selectedCat = cat;
+    renderCategories();
+    renderMenu();
+  }
+
+  function updateQty(id, delta) {
+    const next = (cart[id] || 0) + delta;
+    if (next <= 0) delete cart[id];
+    else cart[id] = next;
+    renderMenu();
+    renderCartBar();
+  }
+
+  function renderMenu() {
+    const list = document.getElementById("menuList");
+    const filtered = menuItems.filter(m => selectedCat === "All" || m.cat === selectedCat);
+    list.innerHTML = filtered.map(m => {
+      const q = cart[m.id] || 0;
+      return `
+        <div class="menu-item">
+          <div class="item-info">
+            <h3>${m.name}</h3>
+            <p>${m.desc || m.cat}</p>
+            <div class="price">₹${m.price}</div>
+          </div>
+          <div class="qty-controls">
+            ${q > 0 ? `<button class="qty-btn" onclick="updateQty(${m.id}, -1)">-</button><span style="font-weight:700; min-width:16px; text-align:center;">${q}</span>` : ""}
+            <button class="qty-btn add" onclick="updateQty(${m.id}, 1)">+</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function getCartInfo() {
+    let count = 0, total = 0, list = [];
+    for (const [id, qty] of Object.entries(cart)) {
+      const item = menuItems.find(m => m.id === Number(id));
+      if (item) {
+        count += qty;
+        total += item.price * qty;
+        list.push(`${item.name} x${qty}`);
+      }
+    }
+    return { count, total, list };
+  }
+
+  function renderCartBar() {
+    const { count, total } = getCartInfo();
+    document.getElementById("cartSummary").textContent = `${count} items • ₹${total}`;
+  }
+
+  function placeOrder() {
+    const { count, total, list } = getCartInfo();
+    if (count === 0) return showToast("Add at least one item first");
+    const table = document.getElementById("tableSelect").value;
+    const note = document.getElementById("noteInput").value.trim();
+    const payMode = document.getElementById("payMode").value;
+
+    const order = {
+      id: "LH" + Math.floor(1000 + Math.random() * 9000),
+      table,
+      items: list.join(", "),
+      total,
+      note,
+      payMode,
+      status: "Pending",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    };
+
+    orders.unshift(order);
+    cart = {};
+    document.getElementById("noteInput").value = "";
+    saveAll();
+    renderMenu();
+    renderCartBar();
+    renderAll();
+    showToast(`Order #${order.id} sent for ${table.startsWith("Private") ? table : "Table " + table}`);
+  }
+
+  function callWaiter() {
+    const table = document.getElementById("tableSelect").value;
+    const reason = document.getElementById("waiterReason").value;
+    waiterCalls.unshift({
+      id: "WC" + Date.now(),
+      table,
+      reason,
+      status: "Pending",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    });
+    saveAll();
+    renderAll();
+    showToast(`Staff notified: ${table.startsWith("Private") ? table : "Table " + table} (${reason})`);
+  }
+
+  function setOrderStatus(id, status) {
+    orders = orders.map(o => o.id === id ? { ...o, status } : o);
+    saveAll();
+    renderAll();
+    showToast(`Order #${id} marked ${status}`);
+  }
+
+  function resolveCall(id) {
+    waiterCalls = waiterCalls.map(w => w.id === id ? { ...w, status: "Done" } : w);
+    saveAll();
+    renderAll();
+  }
+
+  function addMenuItem() {
+    const name = document.getElementById("newItemName").value.trim();
+    const price = Number(document.getElementById("newItemPrice").value);
+    const cat = document.getElementById("newItemCat").value;
+    const desc = document.getElementById("newItemDesc").value.trim() || cat;
+    if (!name || !price || price <= 0) return showToast("Enter valid item name and price");
+
+    menuItems.push({ id: Date.now(), name, price, cat, desc });
+    document.getElementById("newItemName").value = "";
+    document.getElementById("newItemPrice").value = "";
+    document.getElementById("newItemDesc").value = "";
+    saveAll();
+    renderMenu();
+    showToast(`${name} added to menu`);
+  }
+
+  function formatTableLabel(t) {
+    return t.startsWith("Private") ? t : "Table " + t;
+  }
+
+  function renderAll() {
+    const currentTable = document.getElementById("tableSelect").value;
+    const mine = orders.filter(o => o.table === currentTable);
+
+    document.getElementById("myOrders").innerHTML = mine.length ? mine.map(o => `
+      <div style="border-bottom:1px solid var(--border); padding:8px 0; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>#${o.id} • ${formatTableLabel(o.table)}</strong>
+          <span class="badge ${o.status}">${o.status}</span>
+        </div>
+        <div style="color:var(--muted); margin:4px 0;">${o.items}</div>
+        <div><strong>₹${o.total}</strong> • ${o.payMode} • <span style="color:var(--muted);">${o.time}</span></div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders yet for ${formatTableLabel(currentTable)}.</p>`;
+
+    document.getElementById("staffWaiterCalls").innerHTML = waiterCalls.length ? waiterCalls.map(w => `
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding:8px 0; font-size:13px;">
+        <div>
+          <strong>${formatTableLabel(w.table)}</strong> — ${w.reason}
+          <span style="color:var(--muted);">(${w.time})</span>
+          <span class="badge ${w.status}" style="margin-left:6px;">${w.status}</span>
+        </div>
+        ${w.status === "Pending" ? `<button class="mode-btn" onclick="resolveCall('${w.id}')">Done</button>` : ""}
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No active waiter calls.</p>`;
+
+    document.getElementById("staffOrders").innerHTML = orders.length ? orders.map(o => `
+      <div style="border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:10px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>${formatTableLabel(o.table)} • #${o.id}</strong>
+          <span class="badge ${o.status}">${o.status}</span>
+        </div>
+        <div style="margin:6px 0;">${o.items}</div>
+        ${o.note ? `<div style="color:#b45309; font-size:12px; margin-bottom:4px;">Note: ${o.note}</div>` : ""}
+        <div style="color:var(--muted); font-size:12px;">₹${o.total} • ${o.payMode} • ${o.time}</div>
+        <div class="action-row">
+          <button class="btn-accept" onclick="setOrderStatus('${o.id}', 'Accepted')">Accept</button>
+          <button class="btn-reject" onclick="setOrderStatus('${o.id}', 'Rejected')">Reject</button>
+          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Preparing')">Preparing</button>
+          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Ready')">Ready</button>
+        </div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders received yet.</p>`;
+  }
+
+  initTables();
+  renderCategories();
+  renderMenu();
+  renderCartBar();
+  renderAll();
+</script>
+</body>
+  </html>
+    
