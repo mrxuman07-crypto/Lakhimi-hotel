@@ -507,4 +507,36 @@
         <div>
           <strong>${formatTableLabel(w.table)}</strong> — ${w.reason}
           <span style="color:var(--muted);">(${w.time})</span>
-          <span class="badge
+          <span class="badge ${w.status}" style="margin-left:6px;">${w.status}</span>
+        </div>
+        ${w.status === "Pending" ? `<button class="mode-btn" onclick="resolveCall('${w.id}')">Done</button>` : ""}
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No active waiter calls.</p>`;
+
+    document.getElementById("staffOrders").innerHTML = orders.length ? orders.map(o => `
+      <div style="border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:10px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>${formatTableLabel(o.table)} • #${o.id}</strong>
+          <span class="badge ${o.status}">${o.status}</span>
+        </div>
+        <div style="margin:6px 0;">${o.items}</div>
+        ${o.note ? `<div style="color:#b45309; font-size:12px; margin-bottom:4px;">Note: ${o.note}</div>` : ""}
+        <div style="color:var(--muted); font-size:12px;">₹${o.total} • ${o.payMode} • ${o.time}</div>
+        <div class="action-row">
+          <button class="btn-accept" onclick="setOrderStatus('${o.id}', 'Accepted')">Accept</button>
+          <button class="btn-reject" onclick="setOrderStatus('${o.id}', 'Rejected')">Reject</button>
+          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Preparing')">Preparing</button>
+          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Ready')">Ready</button>
+        </div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders received yet.</p>`;
+  }
+
+  initTables();
+  renderCategories();
+  renderMenu();
+  renderCartBar();
+  renderAll();
+</script>
+</body>
+</html>
