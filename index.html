@@ -9,7 +9,7 @@
       --bg: #f5f6f8;
       --card: #ffffff;
       --primary: #991b1b;
-      --primary-dark: #7f1d1d;
+      --primary-soft: #fef2f2;
       --accent: #b45309;
       --success: #15803d;
       --danger: #b91c1c;
@@ -17,21 +17,40 @@
       --muted: #6b7280;
       --border: #e5e7eb;
     }
+
+    body.theme-amber {
+      --bg: #faf7f2;
+      --primary: #b45309;
+      --primary-soft: #fffbeb;
+    }
+
+    body.theme-emerald {
+      --bg: #f4f8f6;
+      --primary: #166534;
+      --primary-soft: #f0fdf4;
+    }
+
+    body.theme-slate {
+      --bg: #eef2f6;
+      --primary: #1e293b;
+      --primary-soft: #f1f5f9;
+    }
+
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-    body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 92px; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 96px; transition: background 0.2s ease; }
 
     header {
-      position: sticky; top: 0; z-index: 20;
+      position: sticky; top: 0; z-index: 25;
       background: #fff; border-bottom: 1px solid var(--border);
-      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
     }
-    .brand h1 { margin: 0; font-size: 18px; color: var(--primary); letter-spacing: 0.2px; }
-    .brand span { font-size: 12px; color: var(--muted); }
+    .brand h1 { margin: 0; font-size: 17px; color: var(--primary); font-weight: 800; }
+    .brand span { font-size: 11px; color: var(--muted); }
 
-    .mode-switch { display: flex; gap: 6px; align-items: center; }
+    .mode-switch { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .mode-btn {
-      border: 1px solid var(--border); background: #f9fafb; padding: 7px 11px;
-      border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+      border: 1px solid var(--border); background: #f9fafb; color: var(--text);
+      padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
     .mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
     .lock-btn {
@@ -39,15 +58,16 @@
       padding: 7px 9px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
 
-    .container { max-width: 740px; margin: 0 auto; padding: 14px; }
+    .container { max-width: 780px; margin: 0 auto; padding: 14px; }
 
     .top-bar {
       display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
       background: #fff; padding: 12px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 14px;
     }
     .table-box { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+
     select, input[type="text"], input[type="number"], input[type="password"] {
-      padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: #fff;
+      padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: #fff; color: var(--text);
     }
 
     .waiter-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -55,7 +75,6 @@
       background: #fffbeb; color: #92400e; border: 1px solid #fcd34d;
       padding: 8px 12px; border-radius: 9px; font-weight: 700; font-size: 13px; cursor: pointer;
     }
-    .waiter-btn:active { transform: scale(0.98); }
 
     .cats { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
     .cat-pill {
@@ -68,11 +87,22 @@
       background: var(--card); border: 1px solid var(--border); border-radius: 12px;
       padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px;
     }
-    .item-info h3 { margin: 0 0 4px; font-size: 15px; }
-    .item-info p { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
-    .price { font-weight: 700; font-size: 14px; }
+    .menu-thumb {
+      width: 68px; height: 68px; border-radius: 10px; object-fit: cover;
+      background: var(--primary-soft); border: 1px solid var(--border); flex-shrink: 0;
+    }
+    .menu-placeholder {
+      width: 68px; height: 68px; border-radius: 10px;
+      background: var(--primary-soft); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; flex-shrink: 0; border: 1px solid var(--border);
+    }
+    .item-info { flex: 1; min-width: 0; }
+    .item-info h3 { margin: 0 0 3px; font-size: 15px; }
+    .item-info p { margin: 0 0 5px; font-size: 12px; color: var(--muted); }
+    .price { font-weight: 800; font-size: 14px; color: var(--primary); }
 
-    .qty-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-controls { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
     .qty-btn {
       width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
       background: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
@@ -84,10 +114,27 @@
       padding: 14px; margin-bottom: 12px;
     }
     .card h3 { margin: 0 0 10px; font-size: 15px; }
+    .card-sub { font-size: 12px; color: var(--muted); margin: -6px 0 12px; }
 
     .order-btn {
       background: var(--success); color: #fff; border: none; padding: 11px 16px;
       border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%;
+    }
+
+    .upi-box {
+      margin-top: 12px; padding: 12px; border-radius: 10px;
+      background: var(--primary-soft); border: 1px dashed var(--primary);
+      text-align: center;
+    }
+    .upi-box img { width: 160px; height: 160px; border-radius: 8px; background: #fff; padding: 6px; }
+    .upi-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+    .upi-link-btn {
+      display: inline-block; text-decoration: none; background: var(--success); color: #fff;
+      padding: 9px 14px; border-radius: 8px; font-weight: 700; font-size: 13px;
+    }
+    .copy-btn {
+      background: #fff; color: var(--text); border: 1px solid var(--border);
+      padding: 9px 12px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;
     }
 
     .cart-bar {
@@ -111,11 +158,11 @@
 
     .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .btn-accept {
-      flex: 1; min-width: 110px; background: var(--success); color: #fff; border: none;
+      flex: 1; min-width: 105px; background: var(--success); color: #fff; border: none;
       padding: 8px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
     }
     .btn-reject {
-      flex: 1; min-width: 110px; background: var(--danger); color: #fff; border: none;
+      flex: 1; min-width: 105px; background: var(--danger); color: #fff; border: none;
       padding: 8px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
     }
     .btn-stage {
@@ -123,7 +170,29 @@
       padding: 8px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
     }
 
-    /* Password Modal */
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .theme-choice {
+      border: 1px solid var(--border); background: #fff; padding: 10px;
+      border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: left;
+    }
+    .theme-choice.selected { border: 2px solid var(--primary); background: var(--primary-soft); }
+
+    .pass-box {
+      border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+      background: #fafafa; margin-bottom: 10px;
+    }
+    .pass-box h4 { margin: 0 0 8px; font-size: 13px; }
+
+    .owner-menu-row {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border); padding: 10px 0; font-size: 13px;
+    }
+    .small-btn {
+      padding: 6px 10px; border-radius: 7px; border: 1px solid var(--border);
+      background: #fff; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .small-btn.del { color: var(--danger); border-color: #fecaca; background: #fef2f2; }
+
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55);
       display: none; align-items: center; justify-content: center; z-index: 60; padding: 16px;
@@ -149,33 +218,34 @@
 
 <header>
   <div class="brand">
-    <h1>Hotel Lakhimi</h1>
-    <span>Scan • Order • Call Waiter</span>
+    <h1 id="headerBrandTitle">Hotel Lakhimi</h1>
+    <span>Scan • Order • Pay • Call Waiter</span>
   </div>
   <div class="mode-switch">
-    <button class="mode-btn active" id="tabCustomer" onclick="switchMode('customer')">Guest</button>
-    <button class="mode-btn" id="tabStaff" onclick="openStaffAccess()">🔒 Chef / Owner</button>
-    <button class="lock-btn hidden" id="lockStaffBtn" onclick="lockStaffMode()">Lock</button>
+    <button class="mode-btn active" id="tabGuest" onclick="switchMode('guest')">Guest</button>
+    <button class="mode-btn" id="tabChef" onclick="requestRoleAccess('chef')">Chef</button>
+    <button class="mode-btn" id="tabOwner" onclick="requestRoleAccess('owner')">🔐 Owner</button>
+    <button class="lock-btn hidden" id="lockBtn" onclick="lockCurrentRole()">Lock</button>
   </div>
 </header>
 
 <div class="toast" id="toast"></div>
 
-<!-- PASSWORD MODAL FOR CHEF / OWNER -->
-<div class="modal-backdrop" id="passwordModal">
+<!-- ROLE PASSWORD MODAL -->
+<div class="modal-backdrop" id="authModal">
   <div class="modal-box">
-    <h3>Chef / Owner Login</h3>
-    <p>Enter staff password to access orders, waiter calls, and menu setup.</p>
-    <input type="password" id="staffPasswordInput" placeholder="Enter password" style="width:100%;" onkeydown="if(event.key==='Enter') verifyStaffPassword()" />
+    <h3 id="authModalTitle">Staff Login</h3>
+    <p id="authModalDesc">Enter password to continue.</p>
+    <input type="password" id="rolePasswordInput" placeholder="Enter password" style="width:100%;" onkeydown="if(event.key==='Enter') verifyRolePassword()" />
     <div class="modal-actions">
-      <button class="mode-btn" style="flex:1; padding:9px;" onclick="closePasswordModal()">Cancel</button>
-      <button class="mode-btn active" style="flex:1; padding:9px;" onclick="verifyStaffPassword()">Unlock</button>
+      <button class="mode-btn" style="flex:1; padding:9px;" onclick="closeAuthModal()">Cancel</button>
+      <button class="mode-btn active" style="flex:1; padding:9px;" onclick="verifyRolePassword()">Unlock</button>
     </div>
   </div>
 </div>
 
-<!-- GUEST / CUSTOMER VIEW -->
-<div class="container" id="customerView">
+<!-- 1. GUEST VIEW -->
+<div class="container" id="guestView">
   <div class="top-bar">
     <div class="table-box">
       <label for="tableSelect">Table:</label>
@@ -197,15 +267,18 @@
   <div id="menuList"></div>
 
   <div class="card" id="checkoutBox">
-    <h3>Place Order</h3>
+    <h3>Order & Payment</h3>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
       <input type="text" id="noteInput" placeholder="Cooking note (e.g. less spicy, no onion)" style="flex:1; min-width:180px;" />
-      <select id="payMode">
-        <option value="Pay at Counter">Pay at Counter (Default)</option>
-        <option value="Online Payment (Add Later)">Online Payment (Add Later)</option>
+      <select id="payMode" onchange="renderUpiBox()">
+        <option value="Pay at Counter">Pay at Counter</option>
+        <option value="Online UPI">Online UPI Payment</option>
       </select>
     </div>
-    <button class="order-btn" onclick="placeOrder()">Send Order to Kitchen</button>
+
+    <div id="upiCheckoutBox" class="upi-box hidden"></div>
+
+    <button class="order-btn" style="margin-top:10px;" onclick="placeOrder()">Send Order</button>
   </div>
 
   <div class="card">
@@ -214,23 +287,70 @@
   </div>
 </div>
 
-<!-- CHEF / OWNER VIEW -->
-<div class="container hidden" id="staffView">
+<!-- 2. CHEF VIEW -->
+<div class="container hidden" id="chefView">
   <div class="card">
     <h3>🔔 Waiter & Table Requests</h3>
-    <div id="staffWaiterCalls"></div>
+    <div id="chefWaiterCalls"></div>
   </div>
 
   <div class="card">
-    <h3>📋 Live Kitchen & Owner Orders</h3>
-    <div id="staffOrders"></div>
+    <h3>🍳 Live Kitchen Orders</h3>
+    <div id="chefOrders"></div>
+  </div>
+</div>
+
+<!-- 3. OWNER VIEW (SETTINGS, MENU + PHOTO, UPI, THEME, PASSWORDS) -->
+<div class="container hidden" id="ownerView">
+  <div class="card">
+    <h3>🔑 Chef & Owner Password Settings</h3>
+    <p class="card-sub">Update passwords anytime without touching the code.</p>
+
+    <div class="pass-box">
+      <h4>Change Chef Password</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input type="password" id="newChefPassInput" placeholder="New Chef password (min 4 chars)" style="flex:1; min-width:180px;" />
+        <button class="mode-btn active" style="padding:8px 14px;" onclick="changeChefPassword()">Update Chef Pass</button>
+      </div>
+    </div>
+
+    <div class="pass-box" style="margin-bottom:0;">
+      <h4>Change Owner Password</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input type="password" id="currentOwnerPassInput" placeholder="Current Owner password" style="flex:1; min-width:150px;" />
+        <input type="password" id="newOwnerPassInput" placeholder="New Owner password (min 4 chars)" style="flex:1; min-width:160px;" />
+        <button class="mode-btn active" style="padding:8px 14px;" onclick="changeOwnerPassword()">Update Owner Pass</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
-    <h3>➕ Add / Manage Menu Items (Setup Mode)</h3>
+    <h3>💳 Online UPI Payment Settings</h3>
+    <p class="card-sub">Add or update your UPI ID anytime. Guests will see this when choosing Online UPI.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-      <input type="text" id="newItemName" placeholder="Item name" style="flex:1; min-width:140px;" />
-      <input type="number" id="newItemPrice" placeholder="Price (₹)" style="width:100px;" />
+      <input type="text" id="upiIdInput" placeholder="UPI ID (e.g. hotel.lakhimi@okaxis)" style="flex:1; min-width:190px;" />
+      <input type="text" id="upiNameInput" placeholder="Payee Name (e.g. Hotel Lakhimi)" style="flex:1; min-width:160px;" />
+    </div>
+    <button class="mode-btn active" style="padding:9px 14px;" onclick="savePaymentSettings()">Save UPI Settings</button>
+  </div>
+
+  <div class="card">
+    <h3>🎨 Website Theme Settings</h3>
+    <p class="card-sub">Switch colors anytime to match your hotel mood.</p>
+    <div class="theme-grid" id="themeChoices">
+      <button class="theme-choice" data-theme="default" onclick="applyTheme('default')">🔴 Classic Lakhimi Red</button>
+      <button class="theme-choice" data-theme="theme-amber" onclick="applyTheme('theme-amber')">🟠 Warm Amber Gold</button>
+      <button class="theme-choice" data-theme="theme-emerald" onclick="applyTheme('theme-emerald')">🟢 Fresh Forest Green</button>
+      <button class="theme-choice" data-theme="theme-slate" onclick="applyTheme('theme-slate')">⚫ Slate Charcoal</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🍽️ Add Menu Item (With Photo)</h3>
+    <p class="card-sub">Choose a photo from your phone or paste an image URL, set price, and add to menu.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+      <input type="text" id="newItemName" placeholder="Dish name" style="flex:1; min-width:150px;" />
+      <input type="number" id="newItemPrice" placeholder="Price (₹)" style="width:105px;" />
       <select id="newItemCat">
         <option value="Starters">Starters</option>
         <option value="Mains">Mains</option>
@@ -239,23 +359,43 @@
       </select>
     </div>
     <input type="text" id="newItemDesc" placeholder="Short description (optional)" style="width:100%; margin-bottom:8px;" />
-    <button class="mode-btn active" style="width:100%; padding:9px;" onclick="addMenuItem()">Add Menu Item</button>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
+      <input type="file" id="newItemPhotoFile" accept="image/*" onchange="handlePhotoFile(event)" style="flex:1; min-width:180px; font-size:12px;" />
+      <input type="text" id="newItemPhotoUrl" placeholder="Or paste image URL" oninput="previewPhotoUrl()" style="flex:1; min-width:180px;" />
+    </div>
+    <div id="photoPreviewWrap" class="hidden" style="margin-bottom:10px;">
+      <img id="photoPreviewImg" src="" alt="Preview" style="width:78px; height:78px; border-radius:10px; object-fit:cover; border:1px solid var(--border);" />
+    </div>
+
+    <button class="mode-btn active" style="width:100%; padding:10px;" onclick="addMenuItem()">Save Menu Item</button>
+  </div>
+
+  <div class="card">
+    <h3>✏️ Edit / Delete Existing Menu Items</h3>
+    <div id="ownerMenuList"></div>
+  </div>
+
+  <div class="card">
+    <h3>📊 All Orders & Waiter Calls Overview</h3>
+    <div id="ownerOrdersSummary"></div>
   </div>
 </div>
 
-<!-- BOTTOM CART BAR -->
+<!-- BOTTOM CART BAR (GUEST ONLY) -->
 <div class="cart-bar" id="cartBar">
   <div>
     <div style="font-size:11px; color:#d1d5db;">Selected Items</div>
     <div style="font-size:15px; font-weight:700;" id="cartSummary">0 items • ₹0</div>
   </div>
   <button class="review-btn" onclick="document.getElementById('checkoutBox').scrollIntoView({behavior:'smooth'})">
-    Order Now
+    Review & Pay
   </button>
 </div>
 
 <script>
-  const STAFF_PASS = "lakhimi123@sp";
+  const DEFAULT_CHEF_PASS = "chef123@sp";
+  const DEFAULT_OWNER_PASS = "lakhimi123@sp";
 
   const TABLES = [
     "1","2","3","4","5","6","7","8","9","10",
@@ -263,15 +403,35 @@
   ];
 
   const DEFAULT_MENU = [
-    { id: 1, name: "Sample Starter", cat: "Starters", price: 120, desc: "Update or add your menu items anytime" },
-    { id: 2, name: "Sample Main Dish", cat: "Mains", price: 200, desc: "Edit price and dish details as needed" },
-    { id: 3, name: "Sample Beverage", cat: "Beverages", price: 60, desc: "Hot or cold drink option" }
+    { id: 1, name: "Veg Starter Platter", cat: "Starters", price: 160, desc: "Add your own items & photos in Owner tab", photo: "" },
+    { id: 2, name: "Lakhimi Special Thali", cat: "Mains", price: 240, desc: "Update dish name, price & photo anytime", photo: "" },
+    { id: 3, name: "Masala Tea / Cold Drink", cat: "Beverages", price: 50, desc: "Refreshing drink option", photo: "" }
   ];
 
   const CATEGORIES = ["All", "Starters", "Mains", "Beverages", "Desserts"];
+
+  let passwords = JSON.parse(localStorage.getItem("lakhimi_passwords") || "null") || {
+    chef: DEFAULT_CHEF_PASS,
+    owner: DEFAULT_OWNER_PASS
+  };
+
+  let activeMode = "guest";
+  let pendingRole = null;
+  let unlockedRoles = {
+    chef: sessionStorage.getItem("lakhimi_chef_auth") === "true",
+    owner: sessionStorage.getItem("lakhimi_owner_auth") === "true"
+  };
+
   let selectedCat = "All";
   let cart = {};
-  let isStaffUnlocked = sessionStorage.getItem("lakhimi_staff_auth") === "true";
+  let draftPhotoData = "";
+
+  let paymentConfig = JSON.parse(localStorage.getItem("lakhimi_upi_config") || "null") || {
+    upiId: "",
+    payeeName: "Hotel Lakhimi"
+  };
+
+  let currentTheme = localStorage.getItem("lakhimi_theme") || "default";
   let menuItems = JSON.parse(localStorage.getItem("lakhimi_menu") || "null") || DEFAULT_MENU;
   let orders = JSON.parse(localStorage.getItem("lakhimi_orders") || "[]");
   let waiterCalls = JSON.parse(localStorage.getItem("lakhimi_calls") || "[]");
@@ -292,64 +452,131 @@
     t.textContent = msg;
     t.style.display = "block";
     clearTimeout(window.toastTimer);
-    window.toastTimer = setTimeout(() => t.style.display = "none", 2300);
+    window.toastTimer = setTimeout(() => t.style.display = "none", 2400);
   }
 
   function saveAll() {
     localStorage.setItem("lakhimi_menu", JSON.stringify(menuItems));
     localStorage.setItem("lakhimi_orders", JSON.stringify(orders));
     localStorage.setItem("lakhimi_calls", JSON.stringify(waiterCalls));
+    localStorage.setItem("lakhimi_upi_config", JSON.stringify(paymentConfig));
+    localStorage.setItem("lakhimi_theme", currentTheme);
+    localStorage.setItem("lakhimi_passwords", JSON.stringify(passwords));
   }
 
-  function openStaffAccess() {
-    if (isStaffUnlocked) {
-      switchMode("staff");
+  function changeChefPassword() {
+    const nextPass = document.getElementById("newChefPassInput").value.trim();
+    if (nextPass.length < 4) return showToast("Chef password must be at least 4 characters");
+    passwords.chef = nextPass;
+    document.getElementById("newChefPassInput").value = "";
+    saveAll();
+    showToast("Chef password updated");
+  }
+
+  function changeOwnerPassword() {
+    const currentPass = document.getElementById("currentOwnerPassInput").value;
+    const nextPass = document.getElementById("newOwnerPassInput").value.trim();
+    if (currentPass !== passwords.owner) return showToast("Current Owner password is wrong");
+    if (nextPass.length < 4) return showToast("New Owner password must be at least 4 characters");
+    passwords.owner = nextPass;
+    document.getElementById("currentOwnerPassInput").value = "";
+    document.getElementById("newOwnerPassInput").value = "";
+    saveAll();
+    showToast("Owner password updated");
+  }
+
+  function applyTheme(themeName) {
+    currentTheme = themeName;
+    document.body.classList.remove("theme-amber", "theme-emerald", "theme-slate");
+    if (themeName !== "default") document.body.classList.add(themeName);
+    document.querySelectorAll(".theme-choice").forEach(btn => {
+      btn.classList.toggle("selected", btn.dataset.theme === themeName);
+    });
+    saveAll();
+    showToast("Theme updated");
+  }
+
+  function requestRoleAccess(role) {
+    if (unlockedRoles[role]) {
+      switchMode(role);
       return;
     }
-    const input = document.getElementById("staffPasswordInput");
-    input.value = "";
-    document.getElementById("passwordModal").classList.add("open");
-    setTimeout(() => input.focus(), 100);
+    pendingRole = role;
+    document.getElementById("authModalTitle").textContent = role === "owner" ? "Owner Settings Login" : "Chef Kitchen Login";
+    document.getElementById("authModalDesc").textContent = role === "owner"
+      ? "Only Owner can edit menu, photos, UPI payment, theme, and passwords."
+      : "Enter Chef password to manage kitchen orders and waiter calls.";
+    const inp = document.getElementById("rolePasswordInput");
+    inp.value = "";
+    document.getElementById("authModal").classList.add("open");
+    setTimeout(() => inp.focus(), 100);
   }
 
-  function closePasswordModal() {
-    document.getElementById("passwordModal").classList.remove("open");
+  function closeAuthModal() {
+    pendingRole = null;
+    document.getElementById("authModal").classList.remove("open");
   }
 
-  function verifyStaffPassword() {
-    const entered = document.getElementById("staffPasswordInput").value;
-    if (entered === STAFF_PASS) {
-      isStaffUnlocked = true;
-      sessionStorage.setItem("lakhimi_staff_auth", "true");
-      closePasswordModal();
-      switchMode("staff");
-      showToast("Chef / Owner panel unlocked");
+  function verifyRolePassword() {
+    if (!pendingRole) return;
+    const entered = document.getElementById("rolePasswordInput").value;
+    const expected = pendingRole === "owner" ? passwords.owner : passwords.chef;
+    if (entered === expected) {
+      const roleToOpen = pendingRole;
+      unlockedRoles[roleToOpen] = true;
+      sessionStorage.setItem(`lakhimi_${roleToOpen}_auth`, "true");
+      closeAuthModal();
+      switchMode(roleToOpen);
+      showToast(`${roleToOpen === "owner" ? "Owner" : "Chef"} panel unlocked`);
     } else {
-      showToast("Wrong password! Try again.");
+      showToast("Incorrect password!");
     }
   }
 
-  function lockStaffMode() {
-    isStaffUnlocked = false;
-    sessionStorage.removeItem("lakhimi_staff_auth");
-    switchMode("customer");
-    showToast("Chef / Owner panel locked");
+  function lockCurrentRole() {
+    if (activeMode === "chef" || activeMode === "owner") {
+      unlockedRoles[activeMode] = false;
+      sessionStorage.removeItem(`lakhimi_${activeMode}_auth`);
+      switchMode("guest");
+      showToast("Panel locked");
+    }
   }
 
   function switchMode(mode) {
-    if (mode === "staff" && !isStaffUnlocked) {
-      openStaffAccess();
+    if ((mode === "chef" || mode === "owner") && !unlockedRoles[mode]) {
+      requestRoleAccess(mode);
       return;
     }
-    const isGuest = mode === "customer";
-    document.getElementById("customerView").classList.toggle("hidden", !isGuest);
-    document.getElementById("staffView").classList.toggle("hidden", isGuest);
-    document.getElementById("cartBar").classList.toggle("hidden", !isGuest);
-    document.getElementById("tabCustomer").classList.toggle("active", isGuest);
-    document.getElementById("tabStaff").classList.toggle("active", !isGuest);
-    document.getElementById("tabStaff").textContent = isStaffUnlocked ? "Chef / Owner" : "🔒 Chef / Owner";
-    document.getElementById("lockStaffBtn").classList.toggle("hidden", !isStaffUnlocked);
+    activeMode = mode;
+
+    document.getElementById("guestView").classList.toggle("hidden", mode !== "guest");
+    document.getElementById("chefView").classList.toggle("hidden", mode !== "chef");
+    document.getElementById("ownerView").classList.toggle("hidden", mode !== "owner");
+    document.getElementById("cartBar").classList.toggle("hidden", mode !== "guest");
+
+    document.getElementById("tabGuest").classList.toggle("active", mode === "guest");
+    document.getElementById("tabChef").classList.toggle("active", mode === "chef");
+    document.getElementById("tabOwner").classList.toggle("active", mode === "owner");
+
+    document.getElementById("tabChef").textContent = unlockedRoles.chef ? "Chef" : "Chef";
+    document.getElementById("tabOwner").textContent = unlockedRoles.owner ? "Owner" : "🔐 Owner";
+    document.getElementById("lockBtn").classList.toggle("hidden", mode === "guest");
+
+    if (mode === "owner") {
+      document.getElementById("upiIdInput").value = paymentConfig.upiId || "";
+      document.getElementById("upiNameInput").value = paymentConfig.payeeName || "Hotel Lakhimi";
+    }
+
     renderAll();
+  }
+
+  function savePaymentSettings() {
+    const upiId = document.getElementById("upiIdInput").value.trim();
+    const payeeName = document.getElementById("upiNameInput").value.trim() || "Hotel Lakhimi";
+    paymentConfig = { upiId, payeeName };
+    saveAll();
+    renderUpiBox();
+    showToast(upiId ? "UPI payment details saved" : "UPI cleared (Pay at Counter active)");
   }
 
   function renderCategories() {
@@ -370,15 +597,26 @@
     else cart[id] = next;
     renderMenu();
     renderCartBar();
+    renderUpiBox();
   }
 
   function renderMenu() {
     const list = document.getElementById("menuList");
     const filtered = menuItems.filter(m => selectedCat === "All" || m.cat === selectedCat);
+    if (!filtered.length) {
+      list.innerHTML = `<div class="card"><p style="color:var(--muted); margin:0; font-size:13px;">No items in this category yet.</p></div>`;
+      return;
+    }
+
     list.innerHTML = filtered.map(m => {
       const q = cart[m.id] || 0;
+      const visual = m.photo
+        ? `<img src="${m.photo}" alt="${m.name}" class="menu-thumb" />`
+        : `<div class="menu-placeholder">${(m.name || "L").charAt(0).toUpperCase()}</div>`;
+
       return `
         <div class="menu-item">
+          ${visual}
           <div class="item-info">
             <h3>${m.name}</h3>
             <p>${m.desc || m.cat}</p>
@@ -411,6 +649,48 @@
     document.getElementById("cartSummary").textContent = `${count} items • ₹${total}`;
   }
 
+  function renderUpiBox() {
+    const mode = document.getElementById("payMode").value;
+    const box = document.getElementById("upiCheckoutBox");
+    const { total } = getCartInfo();
+
+    if (mode !== "Online UPI") {
+      box.classList.add("hidden");
+      box.innerHTML = "";
+      return;
+    }
+
+    box.classList.remove("hidden");
+
+    if (!paymentConfig.upiId) {
+      box.innerHTML = `
+        <div style="font-size:13px; font-weight:700; color:#991b1b;">Online UPI ID not configured yet</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:4px;">Owner can add UPI ID inside the Owner tab, or choose Pay at Counter.</div>
+      `;
+      return;
+    }
+
+    const amountPart = total > 0 ? `&am=${total}` : "";
+    const upiUri = `upi://pay?pa=${encodeURIComponent(paymentConfig.upiId)}&pn=${encodeURIComponent(paymentConfig.payeeName)}${amountPart}&cu=INR`;
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(upiUri)}`;
+
+    box.innerHTML = `
+      <div style="font-size:13px; font-weight:700;">Pay to ${paymentConfig.payeeName}</div>
+      <div style="font-size:12px; color:var(--muted); margin:2px 0 8px;">UPI ID: <strong>${paymentConfig.upiId}</strong> ${total > 0 ? `• Amount: <strong>₹${total}</strong>` : ""}</div>
+      <img src="${qrSrc}" alt="UPI Payment QR" />
+      <div class="upi-actions">
+        <a class="upi-link-btn" href="${upiUri}">Pay via UPI App</a>
+        <button class="copy-btn" type="button" onclick="copyUpiId()">Copy UPI ID</button>
+      </div>
+    `;
+  }
+
+  function copyUpiId() {
+    if (!paymentConfig.upiId) return;
+    navigator.clipboard?.writeText(paymentConfig.upiId);
+    showToast("UPI ID copied");
+  }
+
   function placeOrder() {
     const { count, total, list } = getCartInfo();
     if (count === 0) return showToast("Add at least one item first");
@@ -435,8 +715,9 @@
     saveAll();
     renderMenu();
     renderCartBar();
+    renderUpiBox();
     renderAll();
-    showToast(`Order #${order.id} sent for ${table.startsWith("Private") ? table : "Table " + table}`);
+    showToast(`Order #${order.id} sent`);
   }
 
   function callWaiter() {
@@ -451,14 +732,14 @@
     });
     saveAll();
     renderAll();
-    showToast(`Staff notified: ${table.startsWith("Private") ? table : "Table " + table} (${reason})`);
+    showToast(`Waiter notified for ${formatTableLabel(table)}`);
   }
 
   function setOrderStatus(id, status) {
     orders = orders.map(o => o.id === id ? { ...o, status } : o);
     saveAll();
     renderAll();
-    showToast(`Order #${id} marked ${status}`);
+    showToast(`Order #${id} -> ${status}`);
   }
 
   function resolveCall(id) {
@@ -467,24 +748,116 @@
     renderAll();
   }
 
+  function handlePhotoFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const maxSize = 360;
+        let w = img.width, h = img.height;
+        if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        draftPhotoData = canvas.toDataURL("image/jpeg", 0.72);
+        document.getElementById("newItemPhotoUrl").value = "";
+        showPhotoPreview(draftPhotoData);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function previewPhotoUrl() {
+    const url = document.getElementById("newItemPhotoUrl").value.trim();
+    draftPhotoData = url;
+    showPhotoPreview(url);
+  }
+
+  function showPhotoPreview(src) {
+    const wrap = document.getElementById("photoPreviewWrap");
+    const img = document.getElementById("photoPreviewImg");
+    if (src) {
+      img.src = src;
+      wrap.classList.remove("hidden");
+    } else {
+      img.src = "";
+      wrap.classList.add("hidden");
+    }
+  }
+
   function addMenuItem() {
     const name = document.getElementById("newItemName").value.trim();
     const price = Number(document.getElementById("newItemPrice").value);
     const cat = document.getElementById("newItemCat").value;
     const desc = document.getElementById("newItemDesc").value.trim() || cat;
+    const urlInput = document.getElementById("newItemPhotoUrl").value.trim();
+    const photo = urlInput || draftPhotoData || "";
+
     if (!name || !price || price <= 0) return showToast("Enter valid item name and price");
 
-    menuItems.push({ id: Date.now(), name, price, cat, desc });
+    menuItems.push({ id: Date.now(), name, price, cat, desc, photo });
     document.getElementById("newItemName").value = "";
     document.getElementById("newItemPrice").value = "";
     document.getElementById("newItemDesc").value = "";
+    document.getElementById("newItemPhotoFile").value = "";
+    document.getElementById("newItemPhotoUrl").value = "";
+    draftPhotoData = "";
+    showPhotoPreview("");
+
     saveAll();
     renderMenu();
+    renderOwnerMenuList();
     showToast(`${name} added to menu`);
+  }
+
+  function editMenuPrice(id) {
+    const item = menuItems.find(m => m.id === id);
+    if (!item) return;
+    const updated = prompt(`New price for ${item.name} (₹):`, item.price);
+    if (updated === null) return;
+    const num = Number(updated);
+    if (!num || num <= 0) return showToast("Invalid price");
+    item.price = num;
+    saveAll();
+    renderMenu();
+    renderOwnerMenuList();
+    showToast("Price updated");
+  }
+
+  function deleteMenuItem(id) {
+    menuItems = menuItems.filter(m => m.id !== id);
+    delete cart[id];
+    saveAll();
+    renderMenu();
+    renderCartBar();
+    renderOwnerMenuList();
+    showToast("Item removed");
   }
 
   function formatTableLabel(t) {
     return t.startsWith("Private") ? t : "Table " + t;
+  }
+
+  function renderOwnerMenuList() {
+    const el = document.getElementById("ownerMenuList");
+    if (!el) return;
+    el.innerHTML = menuItems.length ? menuItems.map(m => `
+      <div class="owner-menu-row">
+        <div>
+          <strong>${m.name}</strong> (${m.cat}) — <strong>₹${m.price}</strong>
+          <div style="font-size:11px; color:var(--muted);">${m.photo ? "Photo added" : "No photo"}</div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="small-btn" onclick="editMenuPrice(${m.id})">Edit Price</button>
+          <button class="small-btn del" onclick="deleteMenuItem(${m.id})">Delete</button>
+        </div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">Menu is empty.</p>`;
   }
 
   function renderAll() {
@@ -502,18 +875,20 @@
       </div>
     `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders yet for ${formatTableLabel(currentTable)}.</p>`;
 
-    document.getElementById("staffWaiterCalls").innerHTML = waiterCalls.length ? waiterCalls.map(w => `
+    const callsHtml = waiterCalls.length ? waiterCalls.map(w => `
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding:8px 0; font-size:13px;">
         <div>
           <strong>${formatTableLabel(w.table)}</strong> — ${w.reason}
           <span style="color:var(--muted);">(${w.time})</span>
           <span class="badge ${w.status}" style="margin-left:6px;">${w.status}</span>
         </div>
-        ${w.status === "Pending" ? `<button class="mode-btn" onclick="resolveCall('${w.id}')">Done</button>` : ""}
+        ${w.status === "Pending" ? `<button class="small-btn" onclick="resolveCall('${w.id}')">Done</button>` : ""}
       </div>
     `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No active waiter calls.</p>`;
 
-    document.getElementById("staffOrders").innerHTML = orders.length ? orders.map(o => `
+    document.getElementById("chefWaiterCalls").innerHTML = callsHtml;
+
+    const ordersHtml = orders.length ? orders.map(o => `
       <div style="border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:10px; font-size:13px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <strong>${formatTableLabel(o.table)} • #${o.id}</strong>
@@ -530,12 +905,27 @@
         </div>
       </div>
     `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders received yet.</p>`;
+
+    document.getElementById("chefOrders").innerHTML = ordersHtml;
+    document.getElementById("ownerOrdersSummary").innerHTML = orders.length ? orders.map(o => `
+      <div style="border-bottom:1px solid var(--border); padding:8px 0; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div>
+          <strong>#${o.id}</strong> • ${formatTableLabel(o.table)} • <strong>₹${o.total}</strong> (${o.payMode})
+          <div style="color:var(--muted); font-size:12px;">${o.items} • ${o.time}</div>
+        </div>
+        <span class="badge ${o.status}">${o.status}</span>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders recorded yet.</p>`;
+
+    renderOwnerMenuList();
   }
 
   initTables();
+  applyTheme(currentTheme);
   renderCategories();
   renderMenu();
   renderCartBar();
+  renderUpiBox();
   renderAll();
 </script>
 </body>
