@@ -28,12 +28,16 @@
     .brand h1 { margin: 0; font-size: 18px; color: var(--primary); letter-spacing: 0.2px; }
     .brand span { font-size: 12px; color: var(--muted); }
 
-    .mode-switch { display: flex; gap: 6px; }
+    .mode-switch { display: flex; gap: 6px; align-items: center; }
     .mode-btn {
       border: 1px solid var(--border); background: #f9fafb; padding: 7px 11px;
       border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
     .mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .lock-btn {
+      border: 1px solid #fecaca; background: #fef2f2; color: var(--danger);
+      padding: 7px 9px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
 
     .container { max-width: 740px; margin: 0 auto; padding: 14px; }
 
@@ -42,7 +46,7 @@
       background: #fff; padding: 12px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 14px;
     }
     .table-box { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
-    select, input[type="text"], input[type="number"] {
+    select, input[type="text"], input[type="number"], input[type="password"] {
       padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: #fff;
     }
 
@@ -119,10 +123,24 @@
       padding: 8px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
     }
 
+    /* Password Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55);
+      display: none; align-items: center; justify-content: center; z-index: 60; padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: #fff; width: 100%; max-width: 360px; border-radius: 14px;
+      padding: 18px; border: 1px solid var(--border); box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    }
+    .modal-box h3 { margin: 0 0 6px; font-size: 16px; }
+    .modal-box p { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+    .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+
     .toast {
       position: fixed; top: 68px; left: 50%; transform: translateX(-50%);
       background: #111827; color: #fff; padding: 9px 16px; border-radius: 999px;
-      font-size: 13px; z-index: 50; display: none; white-space: nowrap;
+      font-size: 13px; z-index: 70; display: none; white-space: nowrap;
     }
     .hidden { display: none; }
   </style>
@@ -136,11 +154,25 @@
   </div>
   <div class="mode-switch">
     <button class="mode-btn active" id="tabCustomer" onclick="switchMode('customer')">Guest</button>
-    <button class="mode-btn" id="tabStaff" onclick="switchMode('staff')">Chef / Owner</button>
+    <button class="mode-btn" id="tabStaff" onclick="openStaffAccess()">🔒 Chef / Owner</button>
+    <button class="lock-btn hidden" id="lockStaffBtn" onclick="lockStaffMode()">Lock</button>
   </div>
 </header>
 
 <div class="toast" id="toast"></div>
+
+<!-- PASSWORD MODAL FOR CHEF / OWNER -->
+<div class="modal-backdrop" id="passwordModal">
+  <div class="modal-box">
+    <h3>Chef / Owner Login</h3>
+    <p>Enter staff password to access orders, waiter calls, and menu setup.</p>
+    <input type="password" id="staffPasswordInput" placeholder="Enter password" style="width:100%;" onkeydown="if(event.key==='Enter') verifyStaffPassword()" />
+    <div class="modal-actions">
+      <button class="mode-btn" style="flex:1; padding:9px;" onclick="closePasswordModal()">Cancel</button>
+      <button class="mode-btn active" style="flex:1; padding:9px;" onclick="verifyStaffPassword()">Unlock</button>
+    </div>
+  </div>
+</div>
 
 <!-- GUEST / CUSTOMER VIEW -->
 <div class="container" id="customerView">
@@ -223,6 +255,8 @@
 </div>
 
 <script>
+  const STAFF_PASS = "lakhimi123@sp";
+
   const TABLES = [
     "1","2","3","4","5","6","7","8","9","10",
     "11","12","13","14","15","Private 1","Private 2"
@@ -237,6 +271,7 @@
   const CATEGORIES = ["All", "Starters", "Mains", "Beverages", "Desserts"];
   let selectedCat = "All";
   let cart = {};
+  let isStaffUnlocked = sessionStorage.getItem("lakhimi_staff_auth") === "true";
   let menuItems = JSON.parse(localStorage.getItem("lakhimi_menu") || "null") || DEFAULT_MENU;
   let orders = JSON.parse(localStorage.getItem("lakhimi_orders") || "[]");
   let waiterCalls = JSON.parse(localStorage.getItem("lakhimi_calls") || "[]");
@@ -266,13 +301,54 @@
     localStorage.setItem("lakhimi_calls", JSON.stringify(waiterCalls));
   }
 
+  function openStaffAccess() {
+    if (isStaffUnlocked) {
+      switchMode("staff");
+      return;
+    }
+    const input = document.getElementById("staffPasswordInput");
+    input.value = "";
+    document.getElementById("passwordModal").classList.add("open");
+    setTimeout(() => input.focus(), 100);
+  }
+
+  function closePasswordModal() {
+    document.getElementById("passwordModal").classList.remove("open");
+  }
+
+  function verifyStaffPassword() {
+    const entered = document.getElementById("staffPasswordInput").value;
+    if (entered === STAFF_PASS) {
+      isStaffUnlocked = true;
+      sessionStorage.setItem("lakhimi_staff_auth", "true");
+      closePasswordModal();
+      switchMode("staff");
+      showToast("Chef / Owner panel unlocked");
+    } else {
+      showToast("Wrong password! Try again.");
+    }
+  }
+
+  function lockStaffMode() {
+    isStaffUnlocked = false;
+    sessionStorage.removeItem("lakhimi_staff_auth");
+    switchMode("customer");
+    showToast("Chef / Owner panel locked");
+  }
+
   function switchMode(mode) {
+    if (mode === "staff" && !isStaffUnlocked) {
+      openStaffAccess();
+      return;
+    }
     const isGuest = mode === "customer";
     document.getElementById("customerView").classList.toggle("hidden", !isGuest);
     document.getElementById("staffView").classList.toggle("hidden", isGuest);
     document.getElementById("cartBar").classList.toggle("hidden", !isGuest);
     document.getElementById("tabCustomer").classList.toggle("active", isGuest);
     document.getElementById("tabStaff").classList.toggle("active", !isGuest);
+    document.getElementById("tabStaff").textContent = isStaffUnlocked ? "Chef / Owner" : "🔒 Chef / Owner";
+    document.getElementById("lockStaffBtn").classList.toggle("hidden", !isStaffUnlocked);
     renderAll();
   }
 
@@ -431,37 +507,4 @@
         <div>
           <strong>${formatTableLabel(w.table)}</strong> — ${w.reason}
           <span style="color:var(--muted);">(${w.time})</span>
-          <span class="badge ${w.status}" style="margin-left:6px;">${w.status}</span>
-        </div>
-        ${w.status === "Pending" ? `<button class="mode-btn" onclick="resolveCall('${w.id}')">Done</button>` : ""}
-      </div>
-    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No active waiter calls.</p>`;
-
-    document.getElementById("staffOrders").innerHTML = orders.length ? orders.map(o => `
-      <div style="border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:10px; font-size:13px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong>${formatTableLabel(o.table)} • #${o.id}</strong>
-          <span class="badge ${o.status}">${o.status}</span>
-        </div>
-        <div style="margin:6px 0;">${o.items}</div>
-        ${o.note ? `<div style="color:#b45309; font-size:12px; margin-bottom:4px;">Note: ${o.note}</div>` : ""}
-        <div style="color:var(--muted); font-size:12px;">₹${o.total} • ${o.payMode} • ${o.time}</div>
-        <div class="action-row">
-          <button class="btn-accept" onclick="setOrderStatus('${o.id}', 'Accepted')">Accept</button>
-          <button class="btn-reject" onclick="setOrderStatus('${o.id}', 'Rejected')">Reject</button>
-          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Preparing')">Preparing</button>
-          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Ready')">Ready</button>
-        </div>
-      </div>
-    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders received yet.</p>`;
-  }
-
-  initTables();
-  renderCategories();
-  renderMenu();
-  renderCartBar();
-  renderAll();
-</script>
-</body>
-  </html>
-    
+          <span class="badge
