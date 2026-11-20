@@ -1158,3 +1158,168 @@
     if (updated === null) return;
     const num = Number(updated);
     if (!num || num <= 0) return showToast("Invalid price");
+    item.price = num;
+    saveAll();
+    renderMenu();
+    renderOwnerMenuList();
+    showToast("Price updated");
+  }
+
+  function deleteMenuItem(id) {
+    menuItems = menuItems.filter(m => m.id !== id);
+    delete cart[id];
+    saveAll();
+    renderMenu();
+    renderCartBar();
+    renderOwnerMenuList();
+    showToast("Item removed");
+  }
+
+  function formatDestinationLabel(t) {
+    if (!t) return "Table";
+    if (t === "Home Delivery") return "🚚 Home Delivery";
+    return t.startsWith("Private") ? t : "Table " + t;
+  }
+
+  function renderDeliveryMeta(o) {
+    if (o.orderType !== "delivery" || !o.deliveryInfo) return "";
+    const d = o.deliveryInfo;
+    return `
+      <div style="background:#f9fafb; border:1px solid var(--border); border-radius:8px; padding:7px 9px; margin:6px 0; font-size:12px;">
+        <div><strong>${d.name}</strong> • 📞 ${d.phone}</div>
+        <div>📍 ${d.address}${d.area ? ", " + d.area : ""}${d.landmark ? " (Near: " + d.landmark + ")" : ""}</div>
+        ${d.gps ? `<div style="color:#1d4ed8; font-size:11px; margin-top:2px;">${d.gps}</div>` : ""}
+      </div>
+    `;
+  }
+
+  function renderEconomyStats() {
+    const validOrders = orders.filter(o => o.status !== "Rejected");
+    const rejectedOrders = orders.filter(o => o.status === "Rejected");
+
+    const totalSell = validOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    const rejectedAmt = rejectedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    const upiSell = validOrders.filter(o => o.payMode === "Online UPI").reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    const counterSell = validOrders.filter(o => o.payMode !== "Online UPI").reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+
+    document.getElementById("economyStatsGrid").innerHTML = `
+      <div class="econ-box">
+        <div class="econ-label">Total Sell (Active/Accepted)</div>
+        <div class="econ-val good">₹${totalSell}</div>
+      </div>
+      <div class="econ-box">
+        <div class="econ-label">Valid Orders Count</div>
+        <div class="econ-val">${validOrders.length}</div>
+      </div>
+      <div class="econ-box">
+        <div class="econ-label">Rejected Orders</div>
+        <div class="econ-val bad">${rejectedOrders.length} (₹${rejectedAmt})</div>
+      </div>
+    `;
+
+    document.getElementById("paymentBreakdownText").innerHTML =
+      `Payment Split (Non-Rejected): <strong>Online UPI: ₹${upiSell}</strong> • <strong>Counter / Cash: ₹${counterSell}</strong>`;
+  }
+
+  function renderOwnerMenuList() {
+    const el = document.getElementById("ownerMenuList");
+    if (!el) return;
+    el.innerHTML = menuItems.length ? menuItems.map(m => `
+      <div class="owner-menu-row">
+        <div>
+          <strong>${m.name}</strong> (${m.cat}) — <strong>₹${m.price}</strong>
+          <div style="font-size:11px; color:var(--muted);">${m.photo ? "Photo added" : "No photo"}</div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="small-btn" onclick="editMenuPrice(${m.id})">Edit Price</button>
+          <button class="small-btn del" onclick="deleteMenuItem(${m.id})">Delete</button>
+        </div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">Menu is empty.</p>`;
+  }
+
+  function renderAll() {
+    const isDelivery = document.getElementById("orderTypeSelect").value === "delivery";
+    const currentDest = isDelivery ? "Home Delivery" : document.getElementById("tableSelect").value;
+    const mine = orders.filter(o => o.table === currentDest);
+
+    document.getElementById("myOrders").innerHTML = mine.length ? mine.map(o => `
+      <div style="border-bottom:1px solid var(--border); padding:8px 0; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>#${o.id} • ${formatDestinationLabel(o.table)}</strong>
+          <span class="badge ${o.status}">${o.status}</span>
+        </div>
+        <div style="color:var(--muted); margin:4px 0;">${o.items}</div>
+        ${renderDeliveryMeta(o)}
+        <div><strong>₹${o.total}</strong> • ${o.payMode} • <span style="color:var(--muted);">${o.time}</span></div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders yet for ${formatDestinationLabel(currentDest)}.</p>`;
+
+    const callsHtml = waiterCalls.length ? waiterCalls.map(w => `
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; border-bottom:1px solid var(--border); padding:8px 0; font-size:13px;">
+        <div>
+          <strong>${formatDestinationLabel(w.table)}</strong> — ${w.reason}
+          <span style="color:var(--muted);">(${w.time})</span>
+          <span class="badge ${w.status}" style="margin-left:6px;">${w.status}</span>
+        </div>
+        <div style="display:flex; gap:6px;">
+          ${w.status === "Pending" ? `<button class="small-btn" onclick="resolveCall('${w.id}')">Done</button>` : ""}
+          <button class="small-btn del" onclick="deleteCall('${w.id}')">Delete</button>
+        </div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No waiter calls.</p>`;
+
+    document.getElementById("chefWaiterCalls").innerHTML = callsHtml;
+
+    const ordersHtml = orders.length ? orders.map(o => `
+      <div style="border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:10px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <strong>${formatDestinationLabel(o.table)} • #${o.id}</strong>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="badge ${o.status}">${o.status}</span>
+            <button class="small-btn del" onclick="deleteOrder('${o.id}')">Delete</button>
+          </div>
+        </div>
+        <div style="margin:6px 0;">${o.items}</div>
+        ${renderDeliveryMeta(o)}
+        ${o.note ? `<div style="color:#b45309; font-size:12px; margin-bottom:4px;">Note: ${o.note}</div>` : ""}
+        <div style="color:var(--muted); font-size:12px;">₹${o.total} • ${o.payMode} • ${o.time}</div>
+        <div class="action-row">
+          <button class="btn-accept" onclick="setOrderStatus('${o.id}', 'Accepted')">Accept</button>
+          <button class="btn-reject" onclick="setOrderStatus('${o.id}', 'Rejected')">Reject</button>
+          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Preparing')">Preparing</button>
+          <button class="btn-stage" onclick="setOrderStatus('${o.id}', 'Ready')">Ready</button>
+        </div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders received yet.</p>`;
+
+    document.getElementById("chefOrders").innerHTML = ordersHtml;
+    document.getElementById("ownerOrdersSummary").innerHTML = orders.length ? orders.map(o => `
+      <div style="border-bottom:1px solid var(--border); padding:8px 0; font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div>
+          <strong>#${o.id}</strong> • ${formatDestinationLabel(o.table)} • <strong>₹${o.total}</strong> (${o.payMode})
+          <div style="color:var(--muted); font-size:12px;">${o.items} • ${o.time}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge ${o.status}">${o.status}</span>
+          <button class="small-btn del" onclick="deleteOrder('${o.id}')">Delete</button>
+        </div>
+      </div>
+    `).join("") : `<p style="color:var(--muted); font-size:13px; margin:0;">No orders recorded yet.</p>`;
+
+    renderEconomyStats();
+    renderOwnerMenuList();
+  }
+
+  initTables();
+  applyBrandUI();
+  updateSoundButton();
+  applyTheme(currentTheme);
+  renderCategories();
+  renderMenu();
+  renderCartBar();
+  renderUpiBox();
+  renderAll();
+</script>
+</body>
+</html>
