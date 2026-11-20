@@ -222,6 +222,12 @@
     }
     .small-btn.del { color: var(--danger); border-color: #fecaca; background: #fef2f2; }
 
+    .sync-pill {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 999px; background: #f3f4f6; color: #374151;
+    }
+    .sync-pill.live { background: #dcfce7; color: #166534; }
+
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55);
       display: none; align-items: center; justify-content: center; z-index: 60; padding: 16px;
@@ -251,6 +257,7 @@
     <span id="headerBrandSub">Dine-In QR • Home Delivery • Call Waiter</span>
   </div>
   <div class="mode-switch">
+    <span class="sync-pill" id="headerSyncBadge">Local Mode</span>
     <button class="mode-btn active" id="tabGuest" onclick="switchMode('guest')">Guest</button>
     <button class="mode-btn" id="tabChef" onclick="requestRoleAccess('chef')">Chef</button>
     <button class="mode-btn" id="tabOwner" onclick="requestRoleAccess('owner')">🔐 Owner</button>
@@ -370,12 +377,29 @@
   </div>
 </div>
 
-<!-- 3. OWNER VIEW (ECONOMY, ADVANCED SETTINGS, MENU + PHOTO, UPI, THEME, TUNE, PASSWORDS) -->
+<!-- 3. OWNER VIEW -->
 <div class="container hidden" id="ownerView">
+  <!-- REAL-TIME MULTI-PHONE CLOUD SYNC -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+      <h3 style="margin:0;">☁️ Real-Time Multi-Phone Cloud Sync</h3>
+      <span class="sync-pill" id="ownerSyncStatus">Disconnected</span>
+    </div>
+    <p class="card-sub">Connect a free Firebase Realtime Database URL so orders, home deliveries, and waiter calls sync live across phones.</p>
+    <div class="form-grid-2">
+      <input type="text" id="firebaseUrlInput" placeholder="Firebase RTDB URL (e.g. https://xxxx-default-rtdb.firebaseio.com)" />
+      <input type="text" id="roomCodeInput" placeholder="Hotel Room ID (default: hotel_lakhimi_live)" />
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="mode-btn active" style="padding:8px 14px;" onclick="saveCloudConfig()">Connect & Sync</button>
+      <button class="small-btn del" onclick="disconnectCloudConfig()">Disconnect Cloud</button>
+    </div>
+  </div>
+
   <!-- HOTEL ECONOMY / SALES DASHBOARD -->
   <div class="card">
     <h3>📈 Hotel Economy & Sales Overview</h3>
-    <p class="card-sub">Live summary of total sales, accepted vs rejected orders, and payment modes.</p>
+    <p class="card-sub">Live summary of total sell, valid vs rejected orders, and payment modes.</p>
     <div class="econ-grid" id="economyStatsGrid"></div>
     <div id="paymentBreakdownText" style="font-size:12px; color:var(--muted);"></div>
   </div>
@@ -395,18 +419,28 @@
     <button class="mode-btn active" style="padding:9px 14px;" onclick="saveBrandAndDeliverySettings()">Save Brand & Delivery</button>
   </div>
 
-  <!-- BELL TUNE & SOUND SETTINGS -->
+  <!-- BELL TUNE & CUSTOM AUDIO UPLOAD -->
   <div class="card">
-    <h3>🔔 Waiter Call Tune & Alert Settings</h3>
-    <p class="card-sub">Choose tune style and test alert sound.</p>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <h3>🔔 Waiter Call Tune & Custom Audio</h3>
+    <p class="card-sub">Pick a built-in tune or upload your own audio file (.mp3 / .wav / .ogg).</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
       <select id="tuneStyleSelect" onchange="changeTuneStyle()" style="flex:1; min-width:170px;">
         <option value="classic">Classic 3-Note Bell</option>
         <option value="chime">Soft Zen Chime</option>
         <option value="double">Urgent Double Ring</option>
+        <option value="custom">Custom Uploaded Tune</option>
       </select>
       <button class="small-btn" onclick="playWaiterTune()">▶ Test Tune</button>
       <button class="sound-btn" onclick="toggleSound()" id="ownerSoundBtn">🔊 Bell On</button>
+    </div>
+
+    <div class="pass-box" style="margin-bottom:0;">
+      <h4>Upload Your Own Bell / Ringtone Audio</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <input type="file" id="customTuneFileInput" accept="audio/*" onchange="handleCustomTuneUpload(event)" style="flex:1; min-width:180px; font-size:12px;" />
+        <button class="small-btn del" onclick="clearCustomTune()">Remove Custom Tune</button>
+      </div>
+      <div id="customTuneStatus" style="font-size:11px; color:var(--muted); margin-top:6px;">No custom audio uploaded yet.</div>
     </div>
   </div>
 
@@ -539,8 +573,16 @@
     freeDeliveryAbove: 499
   };
 
+  let cloudConfig = JSON.parse(localStorage.getItem("lakhimi_cloud_config") || "null") || {
+    dbUrl: "",
+    roomId: "hotel_lakhimi_live"
+  };
+
+  let customTuneData = localStorage.getItem("lakhimi_custom_tune") || "";
+  let customTuneName = localStorage.getItem("lakhimi_custom_tune_name") || "";
   let soundEnabled = localStorage.getItem("lakhimi_bell_sound") !== "false";
   let tuneStyle = localStorage.getItem("lakhimi_tune_style") || "classic";
+
   let activeMode = "guest";
   let pendingRole = null;
   let unlockedRoles = {
@@ -562,6 +604,11 @@
   let menuItems = JSON.parse(localStorage.getItem("lakhimi_menu") || "null") || DEFAULT_MENU;
   let orders = JSON.parse(localStorage.getItem("lakhimi_orders") || "[]");
   let waiterCalls = JSON.parse(localStorage.getItem("lakhimi_calls") || "[]");
+
+  let cloudPollTimer = null;
+  let lastKnownCallCount = waiterCalls.length;
+  let lastKnownOrderCount = orders.length;
+  let isApplyingCloudSnapshot = false;
 
   function initTables() {
     const sel = document.getElementById("tableSelect");
@@ -592,6 +639,156 @@
     renderCartBar();
     renderUpiBox();
     showToast("Brand & delivery settings saved");
+  }
+
+  function getCloudEndpoint() {
+    const base = (cloudConfig.dbUrl || "").trim().replace(/\/+$/, "");
+    const room = (cloudConfig.roomId || "hotel_lakhimi_live").trim().replace(/[^a-zA-Z0-9_-]/g, "_") || "hotel_lakhimi_live";
+    if (!base) return "";
+    return `${base}/rooms/${room}.json`;
+  }
+
+  function updateSyncBadges(connected) {
+    const hBadge = document.getElementById("headerSyncBadge");
+    const oBadge = document.getElementById("ownerSyncStatus");
+    if (connected) {
+      hBadge.textContent = "☁️ Live Cloud";
+      hBadge.classList.add("live");
+      if (oBadge) {
+        oBadge.textContent = "Live Connected";
+        oBadge.classList.add("live");
+      }
+    } else {
+      hBadge.textContent = "Local Mode";
+      hBadge.classList.remove("live");
+      if (oBadge) {
+        oBadge.textContent = "Disconnected";
+        oBadge.classList.remove("live");
+      }
+    }
+  }
+
+  function saveCloudConfig() {
+    const dbUrl = document.getElementById("firebaseUrlInput").value.trim();
+    const roomId = document.getElementById("roomCodeInput").value.trim() || "hotel_lakhimi_live";
+    if (!dbUrl || !dbUrl.startsWith("https://")) {
+      return showToast("Enter valid https:// Firebase RTDB URL");
+    }
+    cloudConfig = { dbUrl, roomId };
+    localStorage.setItem("lakhimi_cloud_config", JSON.stringify(cloudConfig));
+    startCloudSync();
+    pushStateToCloud();
+    showToast("Connected to Real-Time Cloud Sync");
+  }
+
+  function disconnectCloudConfig() {
+    cloudConfig = { dbUrl: "", roomId: "hotel_lakhimi_live" };
+    localStorage.setItem("lakhimi_cloud_config", JSON.stringify(cloudConfig));
+    if (cloudPollTimer) clearInterval(cloudPollTimer);
+    updateSyncBadges(false);
+    showToast("Cloud sync disconnected");
+  }
+
+  function pushStateToCloud() {
+    if (isApplyingCloudSnapshot) return;
+    const endpoint = getCloudEndpoint();
+    if (!endpoint) return;
+
+    const payload = {
+      updatedAt: Date.now(),
+      menuItems,
+      orders,
+      waiterCalls,
+      brandConfig,
+      paymentConfig,
+      currentTheme
+    };
+
+    fetch(endpoint, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(r => { if (r.ok) updateSyncBadges(true); })
+      .catch(() => {});
+  }
+
+  function pullStateFromCloud() {
+    const endpoint = getCloudEndpoint();
+    if (!endpoint) {
+      updateSyncBadges(false);
+      return;
+    }
+
+    fetch(endpoint)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) {
+          updateSyncBadges(true);
+          return;
+        }
+        updateSyncBadges(true);
+
+        const nextCalls = Array.isArray(data.waiterCalls) ? data.waiterCalls : [];
+        const nextOrders = Array.isArray(data.orders) ? data.orders : [];
+        const hasNewCall = nextCalls.length > lastKnownCallCount && nextCalls[0]?.status === "Pending";
+        const hasNewOrder = nextOrders.length > lastKnownOrderCount;
+
+        isApplyingCloudSnapshot = true;
+
+        if (Array.isArray(data.menuItems) && data.menuItems.length) {
+          menuItems = data.menuItems;
+          localStorage.setItem("lakhimi_menu", JSON.stringify(menuItems));
+        }
+        orders = nextOrders;
+        waiterCalls = nextCalls;
+        localStorage.setItem("lakhimi_orders", JSON.stringify(orders));
+        localStorage.setItem("lakhimi_calls", JSON.stringify(waiterCalls));
+
+        if (data.brandConfig) {
+          brandConfig = { ...brandConfig, ...data.brandConfig };
+          localStorage.setItem("lakhimi_brand", JSON.stringify(brandConfig));
+          applyBrandUI();
+        }
+        if (data.paymentConfig) {
+          paymentConfig = { ...paymentConfig, ...data.paymentConfig };
+          localStorage.setItem("lakhimi_upi_config", JSON.stringify(paymentConfig));
+        }
+        if (data.currentTheme && data.currentTheme !== currentTheme) {
+          currentTheme = data.currentTheme;
+          localStorage.setItem("lakhimi_theme", currentTheme);
+          document.body.classList.remove("theme-amber", "theme-emerald", "theme-slate");
+          if (currentTheme !== "default") document.body.classList.add(currentTheme);
+        }
+
+        lastKnownCallCount = waiterCalls.length;
+        lastKnownOrderCount = orders.length;
+        isApplyingCloudSnapshot = false;
+
+        renderMenu();
+        renderCartBar();
+        renderUpiBox();
+        renderAll();
+
+        if (hasNewCall) {
+          playWaiterTune();
+          showToast(`🔔 New Waiter Call: ${formatDestinationLabel(waiterCalls[0].table)}`);
+        } else if (hasNewOrder) {
+          playWaiterTune();
+          showToast(`🍽️ New Order #${orders[0].id} received`);
+        }
+      })
+      .catch(() => {});
+  }
+
+  function startCloudSync() {
+    if (cloudPollTimer) clearInterval(cloudPollTimer);
+    if (!getCloudEndpoint()) {
+      updateSyncBadges(false);
+      return;
+    }
+    pullStateFromCloud();
+    cloudPollTimer = setInterval(pullStateFromCloud, 2500);
   }
 
   function handleOrderTypeChange() {
@@ -644,6 +841,51 @@
     if (b2) b2.textContent = label;
   }
 
+  function updateCustomTuneLabel() {
+    const el = document.getElementById("customTuneStatus");
+    if (!el) return;
+    el.textContent = customTuneData
+      ? `Active custom audio: ${customTuneName || "Uploaded Tune"}`
+      : "No custom audio uploaded yet.";
+  }
+
+  function handleCustomTuneUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1500000) {
+      return showToast("Choose a shorter audio clip (under 1.5 MB)");
+    }
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      customTuneData = ev.target.result;
+      customTuneName = file.name;
+      tuneStyle = "custom";
+      localStorage.setItem("lakhimi_custom_tune", customTuneData);
+      localStorage.setItem("lakhimi_custom_tune_name", customTuneName);
+      localStorage.setItem("lakhimi_tune_style", tuneStyle);
+      document.getElementById("tuneStyleSelect").value = "custom";
+      updateCustomTuneLabel();
+      playWaiterTune();
+      showToast("Custom tune saved & selected");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearCustomTune() {
+    customTuneData = "";
+    customTuneName = "";
+    localStorage.removeItem("lakhimi_custom_tune");
+    localStorage.removeItem("lakhimi_custom_tune_name");
+    if (tuneStyle === "custom") {
+      tuneStyle = "classic";
+      localStorage.setItem("lakhimi_tune_style", tuneStyle);
+      document.getElementById("tuneStyleSelect").value = "classic";
+    }
+    document.getElementById("customTuneFileInput").value = "";
+    updateCustomTuneLabel();
+    showToast("Custom tune removed");
+  }
+
   function toggleSound() {
     soundEnabled = !soundEnabled;
     localStorage.setItem("lakhimi_bell_sound", String(soundEnabled));
@@ -657,7 +899,12 @@
   }
 
   function changeTuneStyle() {
-    tuneStyle = document.getElementById("tuneStyleSelect").value;
+    const chosen = document.getElementById("tuneStyleSelect").value;
+    if (chosen === "custom" && !customTuneData) {
+      document.getElementById("tuneStyleSelect").value = tuneStyle;
+      return showToast("Upload a custom audio file first");
+    }
+    tuneStyle = chosen;
     localStorage.setItem("lakhimi_tune_style", tuneStyle);
     playWaiterTune();
     showToast("Tune style updated");
@@ -665,6 +912,15 @@
 
   function playWaiterTune() {
     if (!soundEnabled) return;
+
+    if (tuneStyle === "custom" && customTuneData) {
+      try {
+        const audio = new Audio(customTuneData);
+        audio.play().catch(() => {});
+        return;
+      } catch (_) {}
+    }
+
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
@@ -705,6 +961,8 @@
   }
 
   function saveAll() {
+    lastKnownCallCount = waiterCalls.length;
+    lastKnownOrderCount = orders.length;
     localStorage.setItem("lakhimi_menu", JSON.stringify(menuItems));
     localStorage.setItem("lakhimi_orders", JSON.stringify(orders));
     localStorage.setItem("lakhimi_calls", JSON.stringify(waiterCalls));
@@ -712,6 +970,7 @@
     localStorage.setItem("lakhimi_theme", currentTheme);
     localStorage.setItem("lakhimi_passwords", JSON.stringify(passwords));
     localStorage.setItem("lakhimi_brand", JSON.stringify(brandConfig));
+    pushStateToCloud();
   }
 
   function changeChefPassword() {
@@ -754,7 +1013,7 @@
     pendingRole = role;
     document.getElementById("authModalTitle").textContent = role === "owner" ? "Owner Admin Login" : "Chef Kitchen Login";
     document.getElementById("authModalDesc").textContent = role === "owner"
-      ? "Enter Owner password to access economy stats, settings, menu, UPI, and theme."
+      ? "Enter Owner password to access cloud sync, economy stats, settings, menu, UPI, and theme."
       : "Enter Chef password to manage live orders and waiter calls.";
     const inp = document.getElementById("rolePasswordInput");
     inp.value = "";
@@ -813,6 +1072,8 @@
     document.getElementById("lockBtn").classList.toggle("hidden", mode === "guest");
 
     if (mode === "owner") {
+      document.getElementById("firebaseUrlInput").value = cloudConfig.dbUrl || "";
+      document.getElementById("roomCodeInput").value = cloudConfig.roomId || "hotel_lakhimi_live";
       document.getElementById("upiIdInput").value = paymentConfig.upiId || "";
       document.getElementById("upiNameInput").value = paymentConfig.payeeName || "Hotel Lakhimi";
       document.getElementById("brandTitleInput").value = brandConfig.title || "Hotel Lakhimi";
@@ -820,6 +1081,8 @@
       document.getElementById("deliveryFeeInput").value = brandConfig.deliveryFee ?? 30;
       document.getElementById("freeDeliveryAboveInput").value = brandConfig.freeDeliveryAbove ?? 499;
       document.getElementById("tuneStyleSelect").value = tuneStyle;
+      updateCustomTuneLabel();
+      updateSyncBadges(Boolean(getCloudEndpoint()));
     }
 
     renderAll();
@@ -1320,6 +1583,7 @@
   renderCartBar();
   renderUpiBox();
   renderAll();
+  startCloudSync();
 </script>
 </body>
 </html>
